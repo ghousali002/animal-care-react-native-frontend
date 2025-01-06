@@ -12,25 +12,28 @@ import ProfileScreen from "./screens/ProfileScreen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import UserScreen from "./screens/UserScreen";
 import DrawerContent from "./utils/DrawerContent";
+import { AuthProvider } from "./services/auth/authContext";
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 // Drawer Navigator Component
-function AfterLoginDrawer({ setIsLoggedIn }) {
+function AfterLoginDrawer({ setIsLoggedIn, isLoggedIn }) {
   return (
     <Drawer.Navigator
-      drawerContent={(props) => <DrawerContent {...props} setIsLoggedIn={setIsLoggedIn} />}
+      drawerContent={(props) => (
+        <DrawerContent {...props} setIsLoggedIn={setIsLoggedIn} isLoggedIn={isLoggedIn} />
+      )}
       screenOptions={{
         headerShown: true,
         drawerStyle: { backgroundColor: "#fff", width: 240 },
-        headerStyle: { backgroundColor: 'green' },
-        headerTintColor: '#fff',
-        headerTitleAlign: 'center',
+        headerStyle: { backgroundColor: "green" },
+        headerTintColor: "#fff",
+        headerTitleAlign: "center",
       }}
     >
       <Drawer.Screen
         name="UserHome"
-        options={{ title: "Home" }} 
+        options={{ title: "Home" }}
         component={HomeScreen}
       />
       <Drawer.Screen name="Profile" component={ProfileScreen} />
@@ -38,7 +41,6 @@ function AfterLoginDrawer({ setIsLoggedIn }) {
     </Drawer.Navigator>
   );
 }
-
 
 export default function App() {
   const [isSplashVisible, setSplashVisible] = useState(true);
@@ -52,42 +54,43 @@ export default function App() {
 
     checkLoginStatus();
   }, []);
-  useEffect(() => {
-    console.log(isLoggedIn, "login");
-  }, [isLoggedIn]);
+ 
 
   return (
-    <View style={{ flex: 1 }}>
-      {isSplashVisible ? (
-        <SplashScreen onFinish={() => setSplashVisible(false)} />
-      ) : (
-        <NavigationContainer>
-          <Stack.Navigator screenOptions={{ headerShown: false }}>
-            {isLoggedIn ? (
-              <>
-                <Stack.Screen name="HomeDrawer">
-                  {(props) => (
-                    <AfterLoginDrawer
-                      {...props}
-                      setIsLoggedIn={setIsLoggedIn}
-                    />
-                  )}
-                </Stack.Screen>
-              </>
-            ) : (
-              <>
-                <Stack.Screen name="Home" component={Home} />
-                <Stack.Screen name="Login">
-                  {(props) => (
-                    <Login {...props} setIsLoggedIn={setIsLoggedIn} />
-                  )}
-                </Stack.Screen>
-                <Stack.Screen name="Signup" component={Signup} />
-              </>
-            )}
-          </Stack.Navigator>
-        </NavigationContainer>
-      )}
-    </View>
+    <AuthProvider>
+      <View style={{ flex: 1 }}>
+        {isSplashVisible ? (
+          <SplashScreen onFinish={() => setSplashVisible(false)} />
+        ) : (
+          <NavigationContainer>
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+              {isLoggedIn ? (
+                <>
+                  <Stack.Screen name="HomeDrawer">
+                    {(props) => (
+                      <AfterLoginDrawer
+                        {...props}
+                        setIsLoggedIn={setIsLoggedIn}
+                        isLoggedIn={isLoggedIn}
+                      />
+                    )}
+                  </Stack.Screen>
+                </>
+              ) : (
+                <>
+                  <Stack.Screen name="Home" component={Home} />
+                  <Stack.Screen name="Login">
+                    {(props) => (
+                      <Login {...props} setIsLoggedIn={setIsLoggedIn} />
+                    )}
+                  </Stack.Screen>
+                  <Stack.Screen name="Signup" component={Signup} />
+                </>
+              )}
+            </Stack.Navigator>
+          </NavigationContainer>
+        )}
+      </View>
+    </AuthProvider>
   );
 }

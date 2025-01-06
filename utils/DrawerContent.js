@@ -1,16 +1,17 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, StyleSheet, Text } from "react-native";
 import { DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
 import { Avatar, Title } from "react-native-paper";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "../services/auth/authContext";
 
 const DrawerList = [
   { icon: "home-outline", label: "Home", navigateTo: "UserHome" },
   { icon: "account-multiple", label: "Profile", navigateTo: "Profile" }, // Make sure 'Profile' is in Drawer
   { icon: "account-group", label: "User", navigateTo: "User" },
-//   { icon: "bookshelf", label: "Library", navigateTo: "Library" }, // Ensure navigation name is correct
+  //   { icon: "bookshelf", label: "Library", navigateTo: "Library" }, // Ensure navigation name is correct
 ];
 
 const DrawerLayout = ({ icon, label, navigateTo, ...props }) => {
@@ -29,7 +30,8 @@ const DrawerLayout = ({ icon, label, navigateTo, ...props }) => {
 const DrawerItems = (props) => {
   return DrawerList.map((el, i) => {
     return (
-      <DrawerLayout {...props}
+      <DrawerLayout
+        {...props}
         key={i}
         icon={el.icon}
         label={el.label}
@@ -38,15 +40,39 @@ const DrawerItems = (props) => {
     );
   });
 };
-function DrawerContent({ setIsLoggedIn, ...props }) {
+function DrawerContent({ isLoggedIn, setIsLoggedIn, ...props }) {
+  const { logout: contextLogout, login: contextLogin, userData } = useAuth();
+  const [fullName, setFullName] = useState("Full Name");
+  const [email, setEmail] = useState("email@email.com");
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem("token");
+      contextLogout();
       setIsLoggedIn(false); // Update login state
     } catch (error) {
       console.error("Error during logout:", error);
     }
   };
+  useEffect(() => {
+    const getUser = async () => {
+      const user = await AsyncStorage.getItem("user");
+      contextLogin(user);
+    };
+    if (isLoggedIn) {
+      getUser();
+      console.log(isLoggedIn, "login");
+    }
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    if (userData) {
+      console.log(userData, "userData");
+      setEmail(userData?.email);
+      setFullName(userData?.fullName);
+      console.log(isLoggedIn, "login");
+    }
+  }, [userData]);
+
   return (
     <View style={{ flex: 1 }}>
       <DrawerContentScrollView {...props}>
@@ -74,9 +100,9 @@ function DrawerContent({ setIsLoggedIn, ...props }) {
                   flexDirection: "column",
                 }}
               >
-                <Title style={styles.title}>Ghous Ali</Title>
+                <Title style={styles.title}>{fullName}</Title>
                 <Text style={styles.caption} numberOfLines={1}>
-                  ghous290@gmail.com
+                  {email}
                 </Text>
               </View>
             </View>

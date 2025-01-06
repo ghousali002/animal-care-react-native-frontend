@@ -12,11 +12,13 @@ import { darkGreen } from "./Constants";
 import Field from "./Field";
 import { login } from "../services/api/api";
 import Spinner from "../utils/Spinner";
+import { useAuth } from "../services/auth/authContext";
 
 // Get screen dimensions for responsiveness
 const { width, height } = Dimensions.get("window");
 
 const Login = ({ navigation, setIsLoggedIn }) => {
+  const { login: contextLogin } = useAuth();
   const [email, setEmail] = useState("pilov62253@gholar.com");
   const [password, setPassword] = useState("Pakistan1234");
   const [loading, setLoading] = useState(false);
@@ -25,11 +27,10 @@ const Login = ({ navigation, setIsLoggedIn }) => {
     try {
       setLoading(true);
       const response = await login(email, password);
-      console.log("login successful", response);
       if (response) {
         setLoading(false);
         setIsLoggedIn(true);
-        
+        contextLogin(response?.user);
       }
     } catch (error) {
       setLoading(false);

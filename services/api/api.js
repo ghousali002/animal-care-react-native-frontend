@@ -29,6 +29,8 @@ const ErrorAlert = (apiName, error) => {
 
 export const login = async (email, password) => {
   try {
+    console.log('login ->',email,
+      password,)
     const response = await axios.post(`${BASE_URL}/api/login`, {
       email,
       password,
@@ -36,6 +38,7 @@ export const login = async (email, password) => {
     // Store the token in localStorage
     if (response?.data?.token) {
       await AsyncStorage.setItem("token", response.data.token); // Save token
+      await AsyncStorage.setItem("user", JSON.stringify(response.data.user)); // Save user Data
     }
     return response.data;
   } catch (error) {

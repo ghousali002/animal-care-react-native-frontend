@@ -9,6 +9,7 @@ import Signup from "./screens/SignUp";
 import Login from "./screens/SignIn";
 import HomeScreen from "./screens/HomeScreen";
 import ProfileScreen from "./screens/ProfileScreen";
+import PetAdoption from "./screens/PetAdoption";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import UserScreen from "./screens/UserScreen";
 import DrawerContent from "./utils/DrawerContent";
@@ -36,6 +37,7 @@ function AfterLoginDrawer({ setIsLoggedIn, isLoggedIn }) {
         options={{ title: "Home" }}
         component={HomeScreen}
       />
+      <Drawer.Screen name="PetAdoption" component={PetAdoption} />
       <Drawer.Screen name="Profile" component={ProfileScreen} />
       <Drawer.Screen name="User" component={UserScreen} />
     </Drawer.Navigator>

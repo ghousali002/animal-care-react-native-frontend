@@ -1,10 +1,9 @@
 import axios from "axios";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import { BASE_URL } from "../../Constant";
 // Set up base URL
-const BASE_URL = "http://192.168.100.10:5001";
 
-const ErrorAlert = (apiName, error) => {
+export const ErrorAlert = (apiName, error) => {
   let message = `Error during ${apiName}: `;
 
   if (error.response) {
@@ -37,6 +36,7 @@ export const login = async (email, password) => {
     });
     // Store the token in localStorage
     if (response?.data?.token) {
+      console.log(response?.data?.token)
       await AsyncStorage.setItem("token", response.data.token); // Save token
       await AsyncStorage.setItem("user", JSON.stringify(response.data.user)); // Save user Data
     }

@@ -8,10 +8,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "../services/auth/authContext";
 
 const DrawerList = [
-  { icon: "home-outline", label: "Home", navigateTo: "UserHome" },
-  { icon: "account-multiple", label: "Profile", navigateTo: "Profile" }, // Make sure 'Profile' is in Drawer
+  { icon: "home", label: "Home", navigateTo: "UserHome" },
+  { icon: "paw", label: "Pet Adoption", navigateTo: "PetAdoption" },
+  { icon: "account-multiple", label: "Profile", navigateTo: "Profile" },
   { icon: "account-group", label: "User", navigateTo: "User" },
-  //   { icon: "bookshelf", label: "Library", navigateTo: "Library" }, // Ensure navigation name is correct
 ];
 
 const DrawerLayout = ({ icon, label, navigateTo, ...props }) => {

@@ -63,6 +63,18 @@ export const signup = async (userData) => {
   }
 };
 
+//signup API call
+export const signupShelter = async (userData) => {
+  try {
+    const response = await axios.post(`${BASE_URL}/api/signupShelter`, userData);
+    return response.data;
+  } catch (error) {
+    ErrorAlert("Sign up Shelter", error);
+    console.error("signup Shelter error:", error);
+    throw error;
+  }
+};
+
 //verifyOTP API call
 export const verifyOTP = async (email, otp) => {
   try {

@@ -6,6 +6,7 @@ import { createDrawerNavigator } from "@react-navigation/drawer";
 import SplashScreen from "./components/SplashScreen";
 import Home from "./screens/Home";
 import Signup from "./screens/SignUp";
+import ShelterRegister from "./screens/ShelterRegister";
 import Login from "./screens/SignIn";
 import HomeScreen from "./screens/HomeScreen";
 import ProfileScreen from "./screens/ProfileScreen";
@@ -87,6 +88,7 @@ export default function App() {
                     )}
                   </Stack.Screen>
                   <Stack.Screen name="Signup" component={Signup} />
+                  <Stack.Screen name="ShelterRegister" component={ShelterRegister} />
                 </>
               )}
             </Stack.Navigator>

@@ -12,6 +12,7 @@ const DrawerList = [
   { icon: "paw", label: "Pet Adoption", navigateTo: "PetAdoption" },
   { icon: "account-multiple", label: "Profile", navigateTo: "Profile" },
   { icon: "account-group", label: "User", navigateTo: "User" },
+  { icon: "account-group", label: "Apply For Volunteer", navigateTo: "User" },
 ];
 
 const DrawerLayout = ({ icon, label, navigateTo, ...props }) => {
@@ -27,8 +28,20 @@ const DrawerLayout = ({ icon, label, navigateTo, ...props }) => {
   );
 };
 
-const DrawerItems = (props) => {
-  return DrawerList.map((el, i) => {
+const DrawerItems = ({ role, ...props }) => {
+  const [filterDrawerList, setFilterDrawerList] = useState([]);
+  useEffect(() => {
+    if (role === "Shelter") {
+      const filtered = DrawerList.filter(
+        (item) =>
+          item.label !== "Pet Adoption" && item.label !== "Apply For Volunteer"
+      );
+      setFilterDrawerList(filtered);
+    } else {
+      setFilterDrawerList(DrawerList);
+    }
+  }, []);
+  return filterDrawerList.map((el, i) => {
     return (
       <DrawerLayout
         {...props}
@@ -41,7 +54,12 @@ const DrawerItems = (props) => {
   });
 };
 function DrawerContent({ isLoggedIn, setIsLoggedIn, ...props }) {
-  const { logout: contextLogout, login: contextLogin, userData } = useAuth();
+  const {
+    logout: contextLogout,
+    login: contextLogin,
+    userData,
+    role,
+  } = useAuth();
   const [fullName, setFullName] = useState("Full Name");
   const [email, setEmail] = useState("email@email.com");
   const handleLogout = async () => {
@@ -72,7 +90,6 @@ function DrawerContent({ isLoggedIn, setIsLoggedIn, ...props }) {
       console.log(isLoggedIn, "login");
     }
   }, [userData]);
-
   return (
     <View style={{ flex: 1 }}>
       <DrawerContentScrollView {...props}>
@@ -108,7 +125,7 @@ function DrawerContent({ isLoggedIn, setIsLoggedIn, ...props }) {
             </View>
           </TouchableOpacity>
           <View style={styles.drawerSection}>
-            <DrawerItems {...props} />
+            <DrawerItems {...props} role={role} />
           </View>
         </View>
       </DrawerContentScrollView>

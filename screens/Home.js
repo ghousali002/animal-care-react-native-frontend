@@ -25,6 +25,12 @@ const Home = (props) => {
           btnLabel="Signup"
           Press={() => props.navigation.navigate("Signup")}
         />
+        <Btn
+          bgColor="white"
+          textColor={darkGreen}
+          btnLabel="Shelters Regester"
+          Press={() => props.navigation.navigate("ShelterRegister")}
+        />
       </View>
     </Background>
   );

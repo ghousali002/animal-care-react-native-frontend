@@ -32,29 +32,24 @@ const ShelterRegister = (props) => {
   const [capacity, setCapacity] = useState(null);
 
   const getLocation = async () => {
-    if (!permissionStatus) {
-      let { status } = await Loc.requestForegroundPermissionsAsync();
-      setPermissionStatus(status);
-      if (status === "granted") {
-        const location = await Loc.getCurrentPositionAsync({});
-        setLocation({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        });
-      } else {
-        alert("Permission to access location was denied");
-      }
+    let { status } = await Loc.requestForegroundPermissionsAsync();
+    if (status === "granted") {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          console.log("Location fetched:", position);
+          setLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.log("Error fetching location:", error);
+          alert("Error fetching location");
+        },
+        { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
+      );
     } else {
-      if (permissionStatus === "granted") {
-        // If permission granted, get the current location
-        const location = await Loc.getCurrentPositionAsync({});
-        setLocation({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        });
-      } else {
-        alert("Permission to access location was denied");
-      }
+      alert("Permission to access location was denied");
     }
   };
 
@@ -116,7 +111,7 @@ const ShelterRegister = (props) => {
   const handleSignup = async () => {
     if (validateForm()) {
       setLoading(true);
-      const userData = { fullName, email, password,location,capacity };
+      const userData = { fullName, email, password, location, capacity };
       try {
         const response = await signupShelter(userData);
         console.log("Signup shelter successful", response);
@@ -132,7 +127,12 @@ const ShelterRegister = (props) => {
     <Background>
       <View style={styles.container}>
         {/* Headings outside ScrollView */}
-        <Text style={{ ...styles.title, fontSize: !otpFlag ? width * 0.1 : width * 0.16}}>
+        <Text
+          style={{
+            ...styles.title,
+            fontSize: !otpFlag ? width * 0.1 : width * 0.16,
+          }}
+        >
           {otpFlag ? "OTP" : "Shelter Register"}
         </Text>
         <Text style={styles.subtitle}>

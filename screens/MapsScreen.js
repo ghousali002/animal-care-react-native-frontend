@@ -39,7 +39,7 @@ const MapScreen = ({ startLat, startLng, endLat, endLng, routeCoordinates }) => 
         }}
         provider={PROVIDER_GOOGLE}
         showsUserLocation
-        showsMyLocationButton
+        showsMyLocationButton={true}
         showsPointsOfInterest
         showsScale
         onUserLocationChange={handleUserLocationChange} // Capture user location

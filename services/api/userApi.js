@@ -24,3 +24,34 @@ export const getAnimalsList = async () => {
     throw error;
   }
 };
+
+export const searchSheltersByLocations = async (location) => {
+  try {
+    const token = await AsyncStorage.getItem("token");
+
+    if (!token) {
+      throw new Error("Token is missing. Please log in again.");
+    }
+    if (!location.latitude || !location.longitude) {
+      throw new Error("Location is missing. Please allow location access.");
+    }
+    console.log('searching...')
+    const response = await axios.get(`${BASE_URL}/api/searchSheltersByLocations`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      params: {
+        latitude: location.latitude,
+        longitude: location.longitude,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    ErrorAlert("fetching nearest shelters", error);
+    console.error("Error fetching nearest shelters:", error);
+    throw error;
+  }
+};
+
+

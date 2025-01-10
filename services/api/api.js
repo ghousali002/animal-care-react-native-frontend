@@ -9,7 +9,7 @@ export const ErrorAlert = (apiName, error) => {
   if (error.response) {
     const status = error.response.status;
     if (status === 401) {
-      message += "You are not authorized.";
+      message += "You are not authorized. Please login Again!";
     } else if (status === 500) {
       message += "Internal Server Error.";
     } else if (status === 400) {

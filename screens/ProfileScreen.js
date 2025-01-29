@@ -11,21 +11,23 @@ import {
   PermissionsAndroid,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ChevronDown } from "lucide-react-native";
 import { launchImageLibrary } from "react-native-image-picker"; // Image picker library
 import DateTimePicker from "@react-native-community/datetimepicker"; // Date Picker library
 import { useAuth } from "../services/auth/authContext";
+import { updateProfile } from "../services/api/userApi";
+import Spinner from "../utils/Spinner";
 
 function ProfileScreen(props) {
-  const { userData } = useAuth();
+  const { userData, setUserData } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  // const [password, setPassword] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [city, setCity] = useState("Lahore");
-  const [imageUri, setImageUri] = useState("https://placeholder.com/150"); // Default placeholder
+  const [imageUri, setImageUri] = useState("https://placeholder.com/150");
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [editProfile, setEditProfile] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Function to open the gallery and select an image
   const pickImage = () => {
@@ -83,57 +85,88 @@ function ProfileScreen(props) {
     if (!editProfile && userData) {
       setEmail(userData?.email);
       setName(userData?.fullName);
+      setCity(userData?.city);
+      setDateOfBirth(userData?.dateOfBirth ? new Date(userData.dateOfBirth).toLocaleDateString() : '');
     }
   }, [editProfile]);
-  const handleSave = () => {
-    togleEditProfile();
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      const data = {
+        fullName: name,
+        city: city,
+        dateOfBirth: dateOfBirth,
+        // imageUri: imageUri
+      };
+      const response = await updateProfile(data);
+      if (response?.data) {
+        setLoading(false);
+        setUserData(response?.data);
+        togleEditProfile();
+      }
+    } catch (error) {
+      setLoading(false);
+      console.log("error save profile", error);
+    }
   };
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.content}>
-        {/* Profile Image */}
-        <View style={styles.profileImageContainer}>
-          <Image source={{ uri: imageUri }} style={styles.profileImage} />
-          <TouchableOpacity
-            style={styles.cameraButton}
-            onPress={requestPermissions}
-          >
-            <Text style={styles.cameraButtonText}>📸</Text>
-          </TouchableOpacity>
+      {loading ? (
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Spinner />
         </View>
-
-        {/* Form Fields */}
-        <View style={styles.formContainer}>
-          {/* Name Field */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Name</Text>
-            <TextInput
-              style={styles.input}
-              value={name}
-              onChangeText={setName}
-              placeholder="Enter your name"
-            />
+      ) : (
+        <ScrollView style={styles.content}>
+          {/* Profile Image */}
+          <View style={styles.profileImageContainer}>
+            <Image source={{ uri: imageUri }} style={styles.profileImage} />
+            <TouchableOpacity
+              style={styles.cameraButton}
+              onPress={requestPermissions}
+            >
+              <Text style={styles.cameraButtonText}>📸</Text>
+            </TouchableOpacity>
           </View>
 
-          {/* Email Field */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>
-              Email
-              {editProfile && (
-                <Text style={{ color: "red" }}> (This can't be changed)</Text>
-              )}
-            </Text>
-            <TextInput
-              style={styles.input}
-              value={email}
-              editable={false}
-              placeholder="Enter your email"
-              keyboardType="email-address"
-            />
-          </View>
+          {/* Form Fields */}
+          <View style={styles.formContainer}>
+            {/* Name Field */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Name</Text>
+              <TextInput
+                style={styles.input}
+                value={name}
+                onChangeText={setName}
+                placeholder="Enter your name"
+                editable={editProfile}
+              />
+            </View>
 
-          {/* Password Field */}
-          {/* <View style={styles.inputGroup}>
+            {/* Email Field */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>
+                Email
+                {editProfile && (
+                  <Text style={{ color: "red" }}> (This can't be changed)</Text>
+                )}
+              </Text>
+              <TextInput
+                style={styles.input}
+                value={email}
+                editable={false}
+                placeholder="Enter your email"
+                keyboardType="email-address"
+              />
+            </View>
+
+            {/* Password Field */}
+            {/* <View style={styles.inputGroup}>
             <Text style={styles.label}>Password</Text>
             <TextInput
               style={styles.input}
@@ -144,57 +177,63 @@ function ProfileScreen(props) {
             />
           </View> */}
 
-          {/* Date of Birth Field */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Date of Birth</Text>
-            <View style={styles.dateInputContainer}>
-              <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-                <TextInput
-                  style={styles.dateInput}
-                  value={dateOfBirth}
-                  editable={false} // Prevent editing, use picker instead
-                  placeholder="DD/MM/YYYY"
+            {/* Date of Birth Field */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Date of Birth</Text>
+              <View style={styles.dateInputContainer}>
+                <TouchableOpacity
+                  onPress={() => editProfile && setShowDatePicker(true)}
+                >
+                  <TextInput
+                    style={styles.dateInput}
+                    value={dateOfBirth}
+                    editable={false} // Prevent editing, use picker instead
+                    placeholder="DD/MM/YYYY"
+                  />
+                </TouchableOpacity>
+              </View>
+              {showDatePicker && (
+                <DateTimePicker
+                  testID="dateTimePicker"
+                  value={new Date()}
+                  mode="date"
+                  is24Hour={true}
+                  onChange={onDateChange}
                 />
-              </TouchableOpacity>
+              )}
             </View>
-            {showDatePicker && (
-              <DateTimePicker
-                testID="dateTimePicker"
-                value={new Date()}
-                mode="date"
-                is24Hour={true}
-                onChange={onDateChange}
+
+            {/* Country/Region Field */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>City</Text>
+              <TextInput
+                style={styles.input}
+                value={city}
+                editable={editProfile}
+                placeholder="city"
+                onChangeText={setCity}
               />
-            )}
+            </View>
           </View>
 
-          {/* Country/Region Field */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>City</Text>
-            <TouchableOpacity style={styles.selectButton}>
-              <Text style={styles.selectButtonText}>{city}</Text>
-              <ChevronDown size={20} color="#000" />
+          {/* Save Button */}
+          {editProfile ? (
+            <TouchableOpacity
+              style={{ ...styles.saveButton, backgroundColor: "green" }}
+              onPress={handleSave}
+            >
+              <Text style={styles.saveButtonText}>Save changes</Text>
             </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Save Button */}
-        {editProfile ? (
-          <TouchableOpacity
-            style={{ ...styles.saveButton, backgroundColor: "green" }}
-            onPress={handleSave}
-          >
-            <Text style={styles.saveButtonText}>Save changes</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={{ ...styles.saveButton, backgroundColor: "#1e2f97" }}
-            onPress={togleEditProfile}
-          >
-            <Text style={styles.saveButtonText}>Edit Profile</Text>
-          </TouchableOpacity>
-        )}
-      </ScrollView>
+          ) : (
+            <TouchableOpacity
+              style={{ ...styles.saveButton, backgroundColor: "#1e2f97" }}
+              onPress={togleEditProfile}
+            >
+              <Text style={styles.saveButtonText}>Edit Profile</Text>
+            </TouchableOpacity>
+          )}
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }

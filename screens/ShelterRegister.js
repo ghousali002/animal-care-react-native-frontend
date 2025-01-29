@@ -30,26 +30,41 @@ const ShelterRegister = (props) => {
   const [location, setLocation] = useState({ latitude: null, longitude: null });
   const [permissionStatus, setPermissionStatus] = useState(null);
   const [capacity, setCapacity] = useState(null);
+  const [phone, setPhone] = useState(null);
 
   const getLocation = async () => {
-    let { status } = await Loc.requestForegroundPermissionsAsync();
-    if (status === "granted") {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          console.log("Location fetched:", position);
-          setLocation({
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          });
-        },
-        (error) => {
-          console.log("Error fetching location:", error);
-          alert("Error fetching location");
-        },
-        { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
-      );
+    if (!location?.latitude || !location?.longitude) {
+      console.log('if')
+      let { status } = await Loc.requestForegroundPermissionsAsync();
+      if (status === "granted") {
+      console.log('if if',status)
+        // navigator.geolocation.getCurrentPosition(
+        //   (position) => {
+        //     console.log("Location fetched:", position);
+        //     setLocation({
+        //       latitude: position.coords.latitude,
+        //       longitude: position.coords.longitude,
+        //     });
+        //   },
+        //   (error) => {
+        //     console.log("Error fetching location:", error);
+        //     alert("Error fetching location");
+        //   },
+        //   { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
+        // );
+        const locat = await Loc.getCurrentPositionAsync({ accuracy: Loc.Accuracy.High, timeout: 10000 });
+        console.log(locat)
+        setLocation({
+          latitude: locat?.coords?.latitude,
+          longitude: locat?.coords?.longitude,
+        });
+      } else {
+      console.log('if else')
+
+        alert("Permission to access location was denied");
+      }
     } else {
-      alert("Permission to access location was denied");
+      console.log("else Location fetched:", location);
     }
   };
 
@@ -75,7 +90,8 @@ const ShelterRegister = (props) => {
       !confirmPassword ||
       !capacity ||
       !location.latitude ||
-      !location.longitude
+      !location.longitude ||
+      !phone
     ) {
       alert("Please fill in all fields correctly");
       return false;
@@ -111,7 +127,7 @@ const ShelterRegister = (props) => {
   const handleSignup = async () => {
     if (validateForm()) {
       setLoading(true);
-      const userData = { fullName, email, password, location, capacity };
+      const userData = { fullName, email, password, location, capacity, phone };
       try {
         const response = await signupShelter(userData);
         console.log("Signup shelter successful", response);
@@ -222,6 +238,11 @@ const ShelterRegister = (props) => {
                 placeholder="Capicity"
                 keyboardType="numeric"
                 onTextChange={(text) => setCapacity(text)}
+              />
+              <Field
+                placeholder="Phone Number"
+                keyboardType="numeric"
+                onTextChange={(text) => setPhone(text)}
               />
               {/* Display current location */}
               {location.latitude && location.longitude ? (

@@ -13,6 +13,7 @@ import { SearchBar } from "@rneui/themed";
 import { FontAwesome5, Feather } from "@expo/vector-icons";
 import { getAnimalsList } from "../services/api/userApi";
 import Spinner from "../utils/Spinner";
+import { Linking } from 'react-native';
 
 const places = [
   {
@@ -49,6 +50,9 @@ function PetAdoption({ navigation }) {
   const [saved, setSaved] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigateToBrowser = (url) => {
+    Linking.openURL(url).catch((err) => console.error('Failed to open URL:', err));
+  };
 
   const handleSave = useCallback(
     (id) => {
@@ -119,9 +123,7 @@ function PetAdoption({ navigation }) {
             return (
               <TouchableOpacity
                 key={item?.id}
-                onPress={() => {
-                  // handle onPress
-                }}
+                onPress={() => navigateToBrowser(item.url)}
               >
                 <View style={styles.card}>
                   {/* <View style={styles.cardLikeWrapper}>

@@ -9,14 +9,24 @@ import {
 } from "react-native";
 import { Button, Icon } from "react-native-elements";
 import Spinner from "./Spinner";
+import { Linking } from 'react-native';
 
 const CardFind = ({ loading, shelters, searchFlag }) => {
-  const Card = ({ title, image, distance, displayAddress, email }) => (
-    <View style={styles.card}>
+  const handleCallPress = (phoneNumber) => {
+    Linking.openURL(`tel:${phoneNumber}`);
+  };
+
+  const Card = ({ title, image, distance, displayAddress, email, phone }) => (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => handleCallPress(phone)}
+    >
       <Image source={{ uri: image }} style={styles.image} />
       <View style={styles.details}>
-        <Text style={styles.title}>{title}</Text>
-
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',marginRight:1 }}>
+          <Text style={styles.title}>{title}</Text>
+          <Text style={styles.title}>{phone}</Text>
+        </View>
         <Text style={styles.oldPrice}>{email}</Text>
         <Text style={styles.shipping}>{displayAddress}</Text>
         <View style={styles.priceRow}>
@@ -25,7 +35,7 @@ const CardFind = ({ loading, shelters, searchFlag }) => {
           </Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -45,12 +55,14 @@ const CardFind = ({ loading, shelters, searchFlag }) => {
           <>
             {shelters?.map((shelter) => (
               <Card
-                key={shelter._id} // Make sure each shelter has a unique id
+                key={shelter._id}
                 title={shelter.fullName}
+                phone={shelter.phone}
                 image="https://media.istockphoto.com/id/1217408094/photo/stray-beautiful-dog-lean-out-from-cage-and-looking-at-human-dog-abandoned-in-shelter-and.jpg?s=612x612&w=0&k=20&c=TnnfM4WkFORNsK02MKNyji_QJbExT2JhjySXE1ByTyI="
                 distance={shelter.distance}
                 displayAddress={shelter.shelterDetails.displayName}
                 email={shelter.email}
+                phoneNumber={shelter.shelterDetails.phoneNumber}
               />
             ))}
             {!shelters?.length && searchFlag && (
@@ -70,17 +82,6 @@ const CardFind = ({ loading, shelters, searchFlag }) => {
                 </View>
               </>
             )}
-
-            {/* <Card
-              title="Quant olap shirts"
-              image="https://media.istockphoto.com/id/1250060339/photo/dog-shelter.jpg?s=612x612&w=0&k=20&c=-YBjeCarIKcvzONuxHdYAr1N64DjiiDOa56QOArlvY4="
-              description="100% cotton • Lightweight • Best finish"
-              price="14.99"
-              oldPrice="21.99"
-              rating={4}
-              reviews={289}
-              shipping="Free shipping"
-            /> */}
           </>
         )}
       </View>

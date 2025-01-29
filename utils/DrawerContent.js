@@ -11,8 +11,8 @@ const DrawerList = [
   { icon: "home", label: "Home", navigateTo: "UserHome" },
   { icon: "paw", label: "Pet Adoption", navigateTo: "PetAdoption" },
   { icon: "account-multiple", label: "Profile", navigateTo: "Profile" },
-  { icon: "account-group", label: "User", navigateTo: "User" },
-  { icon: "account-group", label: "Apply For Volunteer", navigateTo: "User" },
+  { icon: "account-group", label: "Apply For Volunteer", navigateTo: "Apply For Volunteer" },
+  { icon: "account-group", label: "Volunteer Applications", navigateTo: "Volunteer Applications" },
 ];
 
 const DrawerLayout = ({ icon, label, navigateTo, ...props }) => {
@@ -34,10 +34,16 @@ const DrawerItems = ({ role, ...props }) => {
     if (role === "Shelter") {
       const filtered = DrawerList.filter(
         (item) =>
-          item.label !== "Pet Adoption" && item.label !== "Apply For Volunteer"
+          item.label !== "Pet Adoption" && item.label !== "Apply For Volunteer" && item.label !== "Volunteer Applications"
       );
       setFilterDrawerList(filtered);
-    } else {
+    } else if(role === "Common"){
+      const filtered = DrawerList.filter(
+        (item) =>
+          item.label !== "Volunteer Applications"
+      );
+      setFilterDrawerList(filtered);
+    }else {
       setFilterDrawerList(DrawerList);
     }
   }, []);

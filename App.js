@@ -10,9 +10,10 @@ import ShelterRegister from "./screens/ShelterRegister";
 import Login from "./screens/SignIn";
 import HomeScreen from "./screens/HomeScreen";
 import ProfileScreen from "./screens/ProfileScreen";
+import VolunteerApplicationsScreen from "./screens/VolunteerApplicationsScreen";
 import PetAdoption from "./screens/PetAdoption";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import UserScreen from "./screens/UserScreen";
+import ApplyForVolunteerScreen from "./screens/ApplyForVolunteerScreen";
 import DrawerContent from "./utils/DrawerContent";
 import { AuthProvider } from "./services/auth/authContext";
 
@@ -40,7 +41,8 @@ function AfterLoginDrawer({ setIsLoggedIn, isLoggedIn }) {
       />
       <Drawer.Screen name="PetAdoption" component={PetAdoption} />
       <Drawer.Screen name="Profile" component={ProfileScreen} />
-      <Drawer.Screen name="User" component={UserScreen} />
+      <Drawer.Screen name="Apply For Volunteer" component={ApplyForVolunteerScreen} />
+      <Drawer.Screen name="Volunteer Applications" component={VolunteerApplicationsScreen} />
     </Drawer.Navigator>
   );
 }

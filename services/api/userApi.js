@@ -49,6 +49,80 @@ export const getVolunteerApplications = async () => {
   }
 };
 
+export const getShelterApplications = async () => {
+  try {
+    const token = await AsyncStorage.getItem("token");
+
+    if (!token) {
+      throw new Error("Token is missing. Please log in again.");
+    }
+
+    const response = await axios.get(`${BASE_URL}/api/getShelterApplications`, {
+      headers: {
+        Authorization: `Bearer ${token}` 
+    }
+    });
+
+    return response.data;
+  } catch (error) {
+    ErrorAlert("fetching Volunteer Applications", error);
+    console.error("fetching Volunteer Applications:", error);
+    throw error;
+  }
+};
+
+export const acceptApplications = async ({ email, applicationId }) => {
+  try {
+    const token = await AsyncStorage.getItem("token");
+    
+    if (!token) {
+      throw new Error("Token is missing. Please log in again.");
+    }
+    const response = await axios.put(
+      `${BASE_URL}/api/acceptApplications`, 
+      {}, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: { email, applicationId },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    ErrorAlert("Accepting Applications", error);
+    console.error("Error accepting applications:", error);
+    throw error;
+  }
+}
+
+export const rejectApplications = async ({ email, applicationId }) => {
+  try {
+    const token = await AsyncStorage.getItem("token");
+    
+    if (!token) {
+      throw new Error("Token is missing. Please log in again.");
+    }
+    const response = await axios.put(
+      `${BASE_URL}/api/rejectApplications`, 
+      {}, 
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: { email, applicationId },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    ErrorAlert("Rejecting Applications", error);
+    console.error("Error Rejecting applications:", error);
+    throw error;
+  }
+}
+
 export const updateProfile = async (data) => {
   try {
     const token = await AsyncStorage.getItem("token");

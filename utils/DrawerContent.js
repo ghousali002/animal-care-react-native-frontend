@@ -11,9 +11,21 @@ const DrawerList = [
   { icon: "home", label: "Home", navigateTo: "UserHome" },
   { icon: "paw", label: "Pet Adoption", navigateTo: "PetAdoption" },
   { icon: "account-multiple", label: "Profile", navigateTo: "Profile" },
-  { icon: "account-group", label: "Apply For Volunteer", navigateTo: "Apply For Volunteer" },
-  { icon: "account-group", label: "Volunteer Applications", navigateTo: "Volunteer Applications" },
-  { icon: "account-multiple", label: "Applications", navigateTo: "Applications" },
+  {
+    icon: "account-group",
+    label: "Apply For Volunteer",
+    navigateTo: "Apply For Volunteer",
+  },
+  {
+    icon: "account-group",
+    label: "Volunteer Applications",
+    navigateTo: "Volunteer Applications",
+  },
+  {
+    icon: "account-multiple",
+    label: "Applications",
+    navigateTo: "Applications",
+  },
 ];
 
 const DrawerLayout = ({ icon, label, navigateTo, ...props }) => {
@@ -29,32 +41,43 @@ const DrawerLayout = ({ icon, label, navigateTo, ...props }) => {
   );
 };
 
-const DrawerItems = ({ role, ...props }) => {
-  const [filterDrawerList, setFilterDrawerList] = useState([]);
-  useEffect(() => {
+const DrawerItems = ({ role,DrawerList, ...props }) => {
+  const [filteredDrawerList, setFilteredDrawerList] = useState([]);
+
+  const filterDrawerListByRole = (role, DrawerList) => {
+    let filtered = [];
+
     if (role === "Shelter") {
-      const filtered = DrawerList.filter(
+      console.log(role, ";fff");
+      filtered = DrawerList.filter(
         (item) =>
-          item.label !== "Home" && item.label !== "Apply For Volunteer" && item.label !== "Volunteer Applications"
+          item.label !== "Home" &&
+          item.label !== "Apply For Volunteer" &&
+          item.label !== "Volunteer Applications"
       );
-      setFilterDrawerList(filtered);
-    } else if(role === "Common"){
-      const filtered = DrawerList.filter(
+    } else if (role === "Common") {
+      filtered = DrawerList.filter(
         (item) =>
-          item.label !== "Volunteer Applications" && item.label !== "Applications"
-      );
-      setFilterDrawerList(filtered);
-    }else if(role === "Volunteer"){
-      const filtered = DrawerList.filter(
-        (item) =>
+          item.label !== "Volunteer Applications" &&
           item.label !== "Applications"
       );
-      setFilterDrawerList(filtered);
-    }else {
-      setFilterDrawerList(DrawerList);
+    } else if (role === "Volunteer") {
+      console.log(role, ";fff");
+      filtered = DrawerList.filter((item) => item.label !== "Applications");
+    } else {
+      console.log(role, "else");
+      filtered = DrawerList;
     }
-  }, []);
-  return filterDrawerList.map((el, i) => {
+
+    return filtered;
+  };
+
+  useEffect(() => {
+    const filtered = filterDrawerListByRole(role, DrawerList);
+    setFilteredDrawerList(filtered);
+  }, [role, DrawerList]);
+
+  return filteredDrawerList.map((el, i) => {
     return (
       <DrawerLayout
         {...props}
@@ -138,7 +161,7 @@ function DrawerContent({ isLoggedIn, setIsLoggedIn, ...props }) {
             </View>
           </TouchableOpacity>
           <View style={styles.drawerSection}>
-            <DrawerItems {...props} role={role} />
+            <DrawerItems {...props} role={role} DrawerList={DrawerList} />
           </View>
         </View>
       </DrawerContentScrollView>

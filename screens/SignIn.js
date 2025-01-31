@@ -19,8 +19,8 @@ const { width, height } = Dimensions.get("window");
 
 const Login = ({ navigation, setIsLoggedIn }) => {
   const { login: contextLogin } = useAuth();
-  const [email, setEmail] = useState("pilov62253@gholar.com");
-  const [password, setPassword] = useState("Pakistan1234");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {

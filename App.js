@@ -16,16 +16,21 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import ApplyForVolunteerScreen from "./screens/ApplyForVolunteerScreen";
 import DrawerContent from "./utils/DrawerContent";
 import { AuthProvider, useAuth } from "./services/auth/authContext";
+import ShelterApplicationsScreen from "./screens/ShelterApplicationsScreen";
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 // Drawer Navigator Component
 function AfterLoginDrawer({ setIsLoggedIn, isLoggedIn }) {
-    const { role } = useAuth();
+  const { role } = useAuth();
   return (
     <Drawer.Navigator
       drawerContent={(props) => (
-        <DrawerContent {...props} setIsLoggedIn={setIsLoggedIn} isLoggedIn={isLoggedIn} />
+        <DrawerContent
+          {...props}
+          setIsLoggedIn={setIsLoggedIn}
+          isLoggedIn={isLoggedIn}
+        />
       )}
       screenOptions={{
         headerShown: true,
@@ -35,15 +40,30 @@ function AfterLoginDrawer({ setIsLoggedIn, isLoggedIn }) {
         headerTitleAlign: "center",
       }}
     >
-      {role !== "Shelter" && <Drawer.Screen
-        name="UserHome"
-        options={{ title: "Home" }}
-        component={HomeScreen}
-      />}
+      {role !== "Shelter" && (
+        <Drawer.Screen
+          name="UserHome"
+          options={{ title: "Home" }}
+          component={HomeScreen}
+        />
+      )}
+
+      {role === "Shelter" && (
+        <Drawer.Screen
+          name="Applications"
+          component={ShelterApplicationsScreen}
+        />
+      )}
       <Drawer.Screen name="PetAdoption" component={PetAdoption} />
       <Drawer.Screen name="Profile" component={ProfileScreen} />
-      <Drawer.Screen name="Apply For Volunteer" component={ApplyForVolunteerScreen} />
-      <Drawer.Screen name="Volunteer Applications" component={VolunteerApplicationsScreen} />
+      <Drawer.Screen
+        name="Apply For Volunteer"
+        component={ApplyForVolunteerScreen}
+      />
+      <Drawer.Screen
+        name="Volunteer Applications"
+        component={VolunteerApplicationsScreen}
+      />
     </Drawer.Navigator>
   );
 }
@@ -60,7 +80,6 @@ export default function App() {
 
     checkLoginStatus();
   }, []);
- 
 
   return (
     <AuthProvider>
@@ -91,7 +110,10 @@ export default function App() {
                     )}
                   </Stack.Screen>
                   <Stack.Screen name="Signup" component={Signup} />
-                  <Stack.Screen name="ShelterRegister" component={ShelterRegister} />
+                  <Stack.Screen
+                    name="ShelterRegister"
+                    component={ShelterRegister}
+                  />
                 </>
               )}
             </Stack.Navigator>

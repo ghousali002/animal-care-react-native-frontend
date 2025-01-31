@@ -14,11 +14,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { launchImageLibrary } from "react-native-image-picker"; // Image picker library
 import DateTimePicker from "@react-native-community/datetimepicker"; // Date Picker library
 import { useAuth } from "../services/auth/authContext";
-import { updateProfile } from "../services/api/userApi";
+import { updateProfile, updateProfileShelter } from "../services/api/userApi";
 import Spinner from "../utils/Spinner";
 
 function ProfileScreen(props) {
-  const { userData, setUserData } = useAuth();
+  const { userData, role, setUserData } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   // const [password, setPassword] = useState("");
@@ -28,6 +28,8 @@ function ProfileScreen(props) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [editProfile, setEditProfile] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [capacity, setCapacity] = useState(null);
+  const [phone, setPhone] = useState(null);
 
   // Function to open the gallery and select an image
   const pickImage = () => {
@@ -85,10 +87,20 @@ function ProfileScreen(props) {
     if (!editProfile && userData) {
       setEmail(userData?.email);
       setName(userData?.fullName);
-      setCity(userData?.city);
-      setDateOfBirth(userData?.dateOfBirth ? new Date(userData.dateOfBirth).toLocaleDateString() : '');
+      if (role === "Shelter") {
+        setCapacity(userData?.shelterDetails?.capacity);
+        setPhone(userData?.phone);
+      } else {
+        setCity(userData?.city);
+        setDateOfBirth(
+          userData?.dateOfBirth
+            ? new Date(userData.dateOfBirth).toLocaleDateString()
+            : ""
+        );
+      }
     }
   }, [editProfile]);
+
   const handleSave = async () => {
     try {
       setLoading(true);
@@ -99,6 +111,28 @@ function ProfileScreen(props) {
         // imageUri: imageUri
       };
       const response = await updateProfile(data);
+      if (response?.data) {
+        setLoading(false);
+        setUserData(response?.data);
+        togleEditProfile();
+      }
+    } catch (error) {
+      setLoading(false);
+      console.log("error save profile", error);
+    }
+  };
+
+  const handleSaveShelter = async () => {
+    try {
+      setLoading(true);
+      const data = {
+        fullName: name,
+        city: city,
+        capacity,
+        phone,
+        // imageUri: imageUri
+      };
+      const response = await updateProfileShelter(data);
       if (response?.data) {
         setLoading(false);
         setUserData(response?.data);
@@ -177,50 +211,80 @@ function ProfileScreen(props) {
             />
           </View> */}
 
-            {/* Date of Birth Field */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Date of Birth</Text>
-              <View style={styles.dateInputContainer}>
-                <TouchableOpacity
-                  onPress={() => editProfile && setShowDatePicker(true)}
-                >
+            {role === "Shelter" ? (
+              <>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Capacity</Text>
                   <TextInput
-                    style={styles.dateInput}
-                    value={dateOfBirth}
-                    editable={false} // Prevent editing, use picker instead
-                    placeholder="DD/MM/YYYY"
+                    style={styles.input}
+                    value={capacity}
+                    editable={editProfile}
+                    placeholder="Capicity"
+                    keyboardType="numeric"
+                    onChangeText={setCapacity}
                   />
-                </TouchableOpacity>
-              </View>
-              {showDatePicker && (
-                <DateTimePicker
-                  testID="dateTimePicker"
-                  value={new Date()}
-                  mode="date"
-                  is24Hour={true}
-                  onChange={onDateChange}
-                />
-              )}
-            </View>
+                </View>
 
-            {/* Country/Region Field */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>City</Text>
-              <TextInput
-                style={styles.input}
-                value={city}
-                editable={editProfile}
-                placeholder="city"
-                onChangeText={setCity}
-              />
-            </View>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Phone</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={phone}
+                    editable={editProfile}
+                    onChangeText={setPhone}
+                    placeholder="Phone Number"
+                    keyboardType="numeric"
+                  />
+                </View>
+              </>
+            ) : (
+              <>
+                {/* Date of Birth Field */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Date of Birth</Text>
+                  <View style={styles.dateInputContainer}>
+                    <TouchableOpacity
+                      onPress={() => editProfile && setShowDatePicker(true)}
+                    >
+                      <TextInput
+                        style={styles.dateInput}
+                        value={dateOfBirth}
+                        editable={false} // Prevent editing, use picker instead
+                        placeholder="DD/MM/YYYY"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  {showDatePicker && (
+                    <DateTimePicker
+                      testID="dateTimePicker"
+                      value={new Date()}
+                      mode="date"
+                      is24Hour={true}
+                      onChange={onDateChange}
+                    />
+                  )}
+                </View>
+
+                {/* Country/Region Field */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>City</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={city}
+                    editable={editProfile}
+                    placeholder="city"
+                    onChangeText={setCity}
+                  />
+                </View>
+              </>
+            )}
           </View>
 
           {/* Save Button */}
           {editProfile ? (
             <TouchableOpacity
               style={{ ...styles.saveButton, backgroundColor: "green" }}
-              onPress={handleSave}
+              onPress={role !== "Shelter" ? handleSave : handleSaveShelter}
             >
               <Text style={styles.saveButtonText}>Save changes</Text>
             </TouchableOpacity>

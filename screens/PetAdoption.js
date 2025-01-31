@@ -7,137 +7,238 @@ import {
   View,
   Image,
   Text,
+  TextInput,
+  Modal,
+  FlatList,
 } from "react-native";
 import FontAwesome from "react-native-vector-icons/FontAwesome5";
-import { SearchBar } from "@rneui/themed";
-import { FontAwesome5, Feather } from "@expo/vector-icons";
 import { getAnimalsList } from "../services/api/userApi";
 import Spinner from "../utils/Spinner";
-import { Linking } from 'react-native';
-
-const places = [
-  {
-    id: 1,
-    img: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2340&q=80",
-    name: "Marbella, Spain",
-    dates: "Apr 23 - May 5",
-    price: 200,
-    rating: 4.45,
-    reviews: 124,
-  },
-  {
-    id: 2,
-    img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2340&q=80",
-    name: "Baveno, Italy",
-    dates: "Apr 25 - May 5",
-    price: 320,
-    rating: 4.81,
-    reviews: 409,
-  },
-  {
-    id: 3,
-    img: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1974&q=80",
-    name: "Tucson, Arizona",
-    dates: "Apr 22 - May 4",
-    price: 695,
-    rating: 4.3,
-    reviews: 72,
-  },
-];
+import { Linking } from "react-native";
 
 function PetAdoption({ navigation }) {
   const [animalsList, setAnimalsList] = useState([]);
   const [saved, setSaved] = useState([]);
-  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
+  // Filter states
+  const [type, setType] = useState("");
+  const [gender, setGender] = useState("");
+  const [color, setColor] = useState("");
+  const [size, setSize] = useState("");
+  const [age, setAge] = useState("");
+
+  // Modal states
+  const [modalVisible, setModalVisible] = useState(false);
+  const [currentFilter, setCurrentFilter] = useState(null);
+  const [filterOptions, setFilterOptions] = useState([]);
+
+  // Mock data for filter options (replace with API call)
+  const mockFilterOptions = {
+    types: [
+      { name: "Type", size: ["Size","Large"], colors: ["Color","Gray", "Blue", "Brown"], genders: ["Gender", "Male", "Female"] },
+      { name: "Rabbit", size: [ "Small"], colors: [ "Agouti", "Black"], genders: ["Male", "Female"] },
+      { name: "Bird", size: ["Medium"], colors: ["Color","Black", "Blue", "Brown"], genders: ["Male", "Female"] },
+      { name: "Cat", size: ["Large"], colors: ["Gray", "Blue", "Brown"], genders: ["Male", "Female"] },
+      { name: "Dog", size: ["Large"], colors: ["Gray", "Blue", "Brown"], genders: ["Male", "Female"] },
+    ],
+  };
+
+
+  useEffect(() => {
+    // Simulate fetching filter options
+    setFilterOptions({
+      types: mockFilterOptions.types.map((t) => t.name),
+      genders: Array.from(new Set(mockFilterOptions.types.flatMap((t) => t.genders))),
+      colors: Array.from(new Set(mockFilterOptions.types.flatMap((t) => t.colors))),
+      sizes: Array.from(new Set(mockFilterOptions.types.flatMap((t) => t.size))),
+    });
+  }, []);
+
   const navigateToBrowser = (url) => {
-    Linking.openURL(url).catch((err) => console.error('Failed to open URL:', err));
+    Linking.openURL(url).catch((err) => console.error("Failed to open URL:", err));
   };
 
   const handleSave = useCallback(
     (id) => {
       if (saved.includes(id)) {
-        // remove listing id from the `saved` array
         setSaved(saved.filter((val) => val !== id));
       } else {
-        // add listing id to the `saved` array
         setSaved([...saved, id]);
       }
     },
     [saved]
   );
-  const fetchAnimals = async () => {
+
+  const fetchAnimals = async (pageNumber = 1, reset = false) => {
+    if (!hasMore && !reset) return;
+
     try {
       setLoading(true);
-      const res = await getAnimalsList();
-      if (res) {
-        setLoading(false);
-        setAnimalsList(res?.data?.animals);
-        console.log(res?.data?.animals, "ll");
+      const res = await getAnimalsList({
+        page: pageNumber,
+        type,
+        gender,
+        color,
+        size,
+      });
+
+      if (res && res.data.animals.length > 0) {
+        if (reset) {
+          setAnimalsList(res.data.animals);
+        } else {
+          setAnimalsList((prev) => [...prev, ...res.data.animals]);
+        }
+        setPage(pageNumber);
+        setHasMore(res.data.animals.length === 10); // Assuming 10 items per page
+      } else {
+        setHasMore(false);
       }
     } catch (error) {
-      setLoading(false);
       console.log(error);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const handleScroll = (event) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const isEndReached =
+      layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+
+    if (isEndReached && hasMore && !loading) {
+      fetchAnimals(page + 1);
+    }
+  };
+
+  const applyFilters = () => {
+    setPage(1);
+    setHasMore(true);
+    fetchAnimals(1, true);
+  };
+
+  useEffect(() => {
+    applyFilters();
+  }, [type,size,color,gender,page])
+  
+
+  const openFilterModal = (filterType) => {
+    setCurrentFilter(filterType);
+    setModalVisible(true);
+  };
+
+  const handleFilterSelection = (value) => {
+    switch (currentFilter) {
+      case "type":
+        setType(value);
+        break;
+      case "gender":
+        setGender(value);
+        break;
+      case "color":
+        setColor(value);
+        break;
+      case "size":
+        setSize(value);
+        break;
+      default:
+        break;
+    }
+    setModalVisible(false);
+  };
+
   useEffect(() => {
     fetchAnimals();
   }, []);
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#f2f2f2" }}>
-      <View style={styles.searchWrapper}>
-        <SearchBar
-          platform="android"
-          containerStyle={{ borderRadius: 40 }}
-          rightIconContainerStyle={{ tintColor: "black" }}
-          loadingProps={{}}
-          onChangeText={(newVal) => setInput(newVal)}
-          onClearText={() => console.log(onClearText())}
-          placeholder="Type query here.."
-          round
-          showCancel
-          showLoading={loading}
-          cancelButtonTitle="Cancel"
-          cancelButtonProps={{}}
-          onCancel={() => setInput("")}
-          value={input}
-        />
-      </View>
-      {/* <View style={styles.header}>
-        <Text style={styles.headerTitle}>Pet</Text>
-      </View> */}
-      {loading ? (
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
+      {/* Filter UI */}
+      <View style={styles.filterContainer}>
+        <TouchableOpacity
+          style={styles.filterTab}
+          onPress={() => openFilterModal("type")}
         >
+          <Text>{type ? type : "Type"}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.filterTab}
+          onPress={() => openFilterModal("gender")}
+        >
+          <Text>{gender ? gender : "Gender"}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.filterTab}
+          onPress={() => openFilterModal("color")}
+        >
+          <Text>{color ? color : "Color"}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.filterTab}
+          onPress={() => openFilterModal("size")}
+        >
+          <Text>{size ? size : "Size"}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Filter Modal */}
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <FlatList
+              data={
+                currentFilter === "type"
+                  ? filterOptions.types
+                  : currentFilter === "gender"
+                  ? filterOptions.genders
+                  : currentFilter === "color"
+                  ? filterOptions.colors
+                  : currentFilter === "size"
+                  ? filterOptions.sizes
+                  : []
+              }
+              keyExtractor={(item, index) => index.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.modalItem}
+                  onPress={() => handleFilterSelection(item)}
+                >
+                  <Text>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {loading && page === 1 ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <Spinner />
         </View>
       ) : (
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+        >
           {animalsList.map((item, index) => {
             const isSaved = saved.includes(item?.id);
             return (
               <TouchableOpacity
-                key={item?.id}
+                key={index}
                 onPress={() => navigateToBrowser(item.url)}
               >
                 <View style={styles.card}>
-                  {/* <View style={styles.cardLikeWrapper}>
-                    <TouchableOpacity onPress={() => handleSave(id)}>
-                      <View style={styles.cardLike}>
-                        <FontAwesome
-                          color={isSaved ? "#ea266d" : "#222"}
-                          name="heart"
-                          solid={isSaved}
-                          size={20}
-                        />
-                      </View>
-                    </TouchableOpacity>
-                  </View> */}
                   <View style={styles.cardTop}>
                     <Image
                       alt=""
@@ -148,9 +249,7 @@ function PetAdoption({ navigation }) {
                   </View>
                   <View style={styles.cardBody}>
                     <View style={styles.cardHeader}>
-                      <Text style={styles.cardTitle}>
-                        Name: {item?.name}
-                      </Text>
+                      <Text style={styles.cardTitle}>Name: {item?.name}</Text>
                       <FontAwesome
                         color="#ea266d"
                         name="star"
@@ -158,12 +257,10 @@ function PetAdoption({ navigation }) {
                         size={12}
                         style={{ marginBottom: 2 }}
                       />
-                      {/* <Text style={styles.cardStars}>{rating}</Text> */}
-                      {/* <Text style={{ color: "#595a63" }}>
-                        ({reviews} reviews)
-                      </Text> */}
                     </View>
-                    <Text style={styles.cardDates}>Age: {item?.age} <Text> Gender: {item?.gender}</Text> </Text>
+                    <Text style={styles.cardDates}>
+                      Age: {item?.age} <Text> Gender: {item?.gender}</Text>
+                    </Text>
                     <Text style={styles.cardPrice}>
                       <Text style={{ fontWeight: "600" }}>
                         Detail: {item?.description}{" "}
@@ -174,6 +271,8 @@ function PetAdoption({ navigation }) {
               </TouchableOpacity>
             );
           })}
+          {loading && page > 1 && <Spinner />}
+          {!hasMore && <Text style={styles.noMoreText}>No more animals to load.</Text>}
         </ScrollView>
       )}
     </SafeAreaView>
@@ -185,29 +284,54 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingHorizontal: 16,
   },
-  /** Header */
-  header: {
-    paddingHorizontal: 16,
-    marginBottom: 12,
-  },
-  headerTop: {
-    marginHorizontal: -6,
+  filterContainer: {
     flexDirection: "row",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
     alignItems: "center",
     justifyContent: "space-between",
   },
-  headerAction: {
-    width: 40,
+  filterTab: {
+    flex: 1,
     height: 40,
-    alignItems: "center",
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 8,
     justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+    paddingHorizontal: 8,
   },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: "#1d1d1d",
+  ageInput: {
+    flex: 1,
+    height: 40,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 8,
   },
-  /** Card */
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: "80%",
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    padding: 16,
+  },
+  modalItem: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ccc",
+  },
+  noMoreText: {
+    textAlign: "center",
+    marginVertical: 16,
+    color: "#666",
+  },
   card: {
     position: "relative",
     borderRadius: 8,
@@ -221,20 +345,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 1.41,
     elevation: 2,
-  },
-  cardLikeWrapper: {
-    position: "absolute",
-    zIndex: 1,
-    top: 12,
-    right: 12,
-  },
-  cardLike: {
-    width: 40,
-    height: 40,
-    borderRadius: 9999,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
   },
   cardTop: {
     borderTopLeftRadius: 8,
@@ -260,13 +370,6 @@ const styles = StyleSheet.create({
     color: "#232425",
     marginRight: "auto",
   },
-  cardStars: {
-    marginLeft: 2,
-    marginRight: 4,
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#232425",
-  },
   cardDates: {
     marginTop: 4,
     fontSize: 16,
@@ -276,14 +379,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 16,
     color: "#232425",
-  },
-  /** Search */
-  searchWrapper: {
-    paddingTop: 8,
-    paddingHorizontal: 16,
-    paddingBottom: 2,
-    borderBottomWidth: 1,
-    borderColor: "#efefef",
   },
 });
 

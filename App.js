@@ -15,12 +15,13 @@ import PetAdoption from "./screens/PetAdoption";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import ApplyForVolunteerScreen from "./screens/ApplyForVolunteerScreen";
 import DrawerContent from "./utils/DrawerContent";
-import { AuthProvider } from "./services/auth/authContext";
+import { AuthProvider, useAuth } from "./services/auth/authContext";
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
 // Drawer Navigator Component
 function AfterLoginDrawer({ setIsLoggedIn, isLoggedIn }) {
+    const { role } = useAuth();
   return (
     <Drawer.Navigator
       drawerContent={(props) => (
@@ -34,11 +35,11 @@ function AfterLoginDrawer({ setIsLoggedIn, isLoggedIn }) {
         headerTitleAlign: "center",
       }}
     >
-      <Drawer.Screen
+      {role !== "Shelter" && <Drawer.Screen
         name="UserHome"
         options={{ title: "Home" }}
         component={HomeScreen}
-      />
+      />}
       <Drawer.Screen name="PetAdoption" component={PetAdoption} />
       <Drawer.Screen name="Profile" component={ProfileScreen} />
       <Drawer.Screen name="Apply For Volunteer" component={ApplyForVolunteerScreen} />
